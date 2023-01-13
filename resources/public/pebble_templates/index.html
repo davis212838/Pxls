@@ -114,7 +114,7 @@
         <div id="ui-bottom">
             <button type="button" id="undo"><span>{{i18n('Localization', 'Undo') | raw}}</span></button>
             <div id="login-overlay" class="palette-overlay">
-                {{i18n('Localization', 'You are not signed in.&nbsp;<a href="#">Sign in with...</a>') | raw}}
+                {{i18n('Localization', 'You are not signed in.&nbsp;<a href="/signin?redirect">Sign in</a>') | raw}}
             </div>
             <div id="user-message" class="palette-overlay"></div>
             <div id="palette"></div>
@@ -801,25 +801,6 @@
                             <input id="setting-chat-pings-audio-volume" type="range" min="0" max="1" step="0.01">
                             <span class="range-text-value" id="chat-pings-audio-volume-value">50%</span>
                         </label>
-                    </div>
-                </section>
-            </div>
-        </article>
-        <article data-id="personal-account" data-keywords="{{i18n('Localization', 'personal account') | raw}}">
-            <header>
-                <h3>{{i18n('Localization', 'Account Settings') | raw}}</h3>
-            </header>
-            <div class="pad-wrapper">
-                <section data-keywords="personal;account;user">
-                    <div data-keywords="discord username">
-                        <label class="input-group">
-                            <span class="label-text">{{i18n('Localization', 'Public Discord name:') | raw}}</span>
-                            <input class="fullwidth" type="text" placeholder="pxlslover#1337" id="txtDiscordName">
-                        </label>
-                        <div class="button-bar">
-                            <button class="text-button" id="btnDiscordNameSet">{{i18n('Localization', 'Set') | raw}}</button>
-                            <button class="text-button" id="btnDiscordNameRemove">{{i18n('Localization', 'Remove') | raw}}</button>
-                        </div>
                     </div>
                 </section>
             </div>

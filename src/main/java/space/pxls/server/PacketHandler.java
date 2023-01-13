@@ -80,7 +80,6 @@ public class PacketHandler {
                     App.getDatabase().getChatBanReason(user.getId()),
                     user.isPermaChatbanned(),
                     user.getChatbanExpiryTime(),
-                    user.isRenameRequested(true),
                     user.getDiscordName(),
                     user.getChatNameColor()
             ));
@@ -212,7 +211,7 @@ public class PacketHandler {
                     sendAvailablePixels(user, "undo");
                 }
                 user.setCooldown(0);
-                DBPixelPlacementFull lastPixel = App.getDatabase().getPixelByID(null, thisPixel.secondaryId);
+                DBPixelPlacementFull lastPixel = App.getDatabase().getPixelByID(thisPixel.secondaryId);
                 if (lastPixel != null) {
                     App.getDatabase().putUserUndoPixel(lastPixel, user, thisPixel.id);
                     App.putPixel(lastPixel.x, lastPixel.y, lastPixel.color, user, false, ip, false, "user undo");
@@ -459,7 +458,6 @@ public class PacketHandler {
         } else {
             if (!user.canChat()) return;
             if (message.trim().length() == 0) return;
-            if (user.isRenameRequested(false)) return;
             int remaining = RateLimitFactory.getTimeRemaining(DBChatMessage.class, String.valueOf(user.getId()));
             if (!user.hasPermission("chat.cooldown.ignore") && remaining > 0) {
                 server.send(user, new ServerChatCooldown(remaining, message));

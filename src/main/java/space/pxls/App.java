@@ -109,8 +109,6 @@ public class App {
             }
         }).start();
 
-        new Timer().schedule(new SessionTimer(), 0, 1000 * 3600); // execute once every hour
-
         int heatmap_timer_cd = (int) App.getConfig().getDuration("board.heatmapCooldown", TimeUnit.SECONDS);
         new Timer().schedule(new HeatmapTimer(), 0, heatmap_timer_cd * 1000 / 256);
 
@@ -180,92 +178,6 @@ public class App {
                 } catch (Exception x) {
                     x.printStackTrace();
                 }
-            } else if (token[0].equalsIgnoreCase("logins") || token[0].equalsIgnoreCase("login")) {
-                if (token.length < 2) {
-                    System.out.println("Usage: logins <username> [{service ID}:{service user ID} ...]");
-                    return;
-                }
-                User user = userManager.getByName(token[1]);
-                if (user == null) {
-                    System.out.println("Cannot find user " + token[1]);
-                    return;
-                }
-                if (token.length < 3) {
-                    var logins = user.getLogins();
-                    if (logins.isEmpty()) {
-                        System.out.println("User " + user.getName() + " has no logins");
-                    } else {
-                        String prettyLogins = logins.stream()
-                            .map(UserLogin::toString)
-                            .collect(Collectors.joining(", "));
-                        System.out.println("User " + user.getName() + " has logins " + prettyLogins);
-                    }
-                    return;
-                }
-                var rest = Arrays.copyOfRange(token, 2, token.length);
-                List<UserLogin> logins = new ArrayList<>();
-                if (!rest[0].equals("-")) {
-                    try {
-                        logins = Arrays.stream(rest)
-                            .distinct()
-                            .map(UserLogin::fromString)
-                            .collect(Collectors.toList());
-                    } catch (IllegalArgumentException ex) {
-                        System.out.println(ex.toString());
-                        return;
-                    }
-                }
-                database.setUserLogins(user.getId(), logins);
-                String prettyLogins = logins.stream()
-                    .map(UserLogin::toString)
-                    .collect(Collectors.joining(", "));
-                String logMessage = "Set " + user.getName() + "'s login methods to " + prettyLogins;
-                if (logins.isEmpty()) {
-                    logMessage = "Removed " + user.getName() + "'s login methods";
-                }
-                database.insertServerAdminLog(logMessage);
-                System.out.println(logMessage);
-            } else if (token[0].equalsIgnoreCase("addlogins") || token[0].equalsIgnoreCase("addlogin")) {
-                if (token.length < 3) {
-                    System.out.println("Usage: addlogins <username> [{service ID}:{service user ID} ...]");
-                    return;
-                }
-                User user = userManager.getByName(token[1]);
-                if (user == null) {
-                    System.out.println("Cannot find user " + token[1]);
-                    return;
-                }
-                var rest = Arrays.copyOfRange(token, 2, token.length);
-                List<UserLogin> addedLogins;
-                try {
-                    addedLogins = Arrays.stream(rest)
-                        .distinct()
-                        .map(UserLogin::fromString)
-                        .collect(Collectors.toList());
-                } catch (IllegalArgumentException ex) {
-                    System.out.println(ex);
-                    return;
-                }
-                String prettyLogins = addedLogins.stream().map(UserLogin::toString).collect(Collectors.joining(", "));
-                database.bulkAddUserLogins(user.getId(), addedLogins);
-                String message = "Added login methods \"" + prettyLogins + "\" to " + user.getName();
-                database.insertServerAdminLog(message);
-                System.out.println(message);
-            } else if (token[0].equalsIgnoreCase("removelogins") || token[0].equalsIgnoreCase("removelogin")) {
-                if (token.length < 3) {
-                    System.out.println("Usage: removelogins <username> [service ID ...]");
-                    return;
-                }
-                User user = userManager.getByName(token[1]);
-                if (user == null) {
-                    System.out.println("Cannot find user " + token[1]);
-                    return;
-                }
-                var rest = Arrays.copyOfRange(token, 2, token.length);
-                database.bulkRemoveUserLoginServices(user.getId(), List.of(rest));
-                String message = "Removed login methods \"" + String.join(", ", rest) + "\" from " + user.getName();
-                database.insertServerAdminLog(message);
-                System.out.println(message);
             } else if (token[0].equalsIgnoreCase("roles") || token[0].equalsIgnoreCase("role")) {
                 if (token.length < 2) {
                     System.out.println("Usage: roles <username> [role ID ...]");
@@ -667,40 +579,6 @@ public class App {
                 System.out.println("Working... (may cause some lag)");
                 userManager.reload();
                 System.out.println("Done.");
-            } else if (token[0].equalsIgnoreCase("flagRename")) {
-                //flagRename USERNAME [1|0]
-                if (token.length >= 2) {
-                    boolean flagState = token.length < 3 || (token[2].equalsIgnoreCase("1") || token[2].equalsIgnoreCase("true") || token[2].equalsIgnoreCase("yes") || token[2].equalsIgnoreCase("y"));
-                    User toFlag = userManager.getByName(token[1]);
-                    if (toFlag != null) {
-                        System.out.printf("Flagging %s as %s%n", toFlag.getName(), flagState);
-                        toFlag.setRenameRequested(flagState);
-                        App.getDatabase().insertServerAdminLog(String.format("%s %s (%d) for name change", flagState ? "Flagged" : "Unflagged", toFlag.getName(), toFlag.getId()));
-                    } else {
-                        System.out.println("User doesn't exist");
-                    }
-                } else {
-                    System.out.println("flagRename USERNAME [1|0]");
-                }
-            } else if (token[0].equalsIgnoreCase("setName") || token[0].equalsIgnoreCase("updateUsername")) {
-                //setName USERNAME NEW_USERNAME
-                if (token.length >= 3) {
-                    User toRename = userManager.getByName(token[1]);
-                    if (toRename != null) {
-                        toRename.setRenameRequested(false);
-                        if (toRename.updateUsername(token[2], true)) {
-                            App.getServer().send(toRename, new ServerRenameSuccess(toRename.getName()));
-                            App.getDatabase().insertServerAdminLog(String.format("Changed %s's name to %s (uid: %d)", token[1], token[2], toRename.getId()));
-                            System.out.println("Name updated");
-                        } else {
-                            System.out.println("Failed to update name (function returned false. name taken or an error occurred)");
-                        }
-                    } else {
-                        System.out.println("User doesn't exist");
-                    }
-                } else {
-                    System.out.printf("%s USERNAME NEW_USERNAME%n", token[0]);
-                }
             } else if (token[0].equalsIgnoreCase("idleCheck")) {
                 try {
                     checkUserTimeout();
@@ -842,7 +720,6 @@ public class App {
 
         RateLimitFactory.registerBucketHolder(ClientUndo.class, new RateLimitFactory.BucketConfig(((int) App.getConfig().getDuration("server.limits.undo.time", TimeUnit.SECONDS)), App.getConfig().getInt("server.limits.undo.count")));
         RateLimitFactory.registerBucketHolder(DBChatMessage.class, new RateLimitFactory.BucketConfig(((int) App.getConfig().getDuration("server.limits.chat.time", TimeUnit.SECONDS)), App.getConfig().getInt("server.limits.chat.count")));
-        RateLimitFactory.registerBucketHolder("http:discordName", new RateLimitFactory.BucketConfig((int) App.getConfig().getDuration("server.limits.discordNameChange.time", TimeUnit.SECONDS), App.getConfig().getInt("server.limits.discordNameChange.count")));
 
         mapSaveTimer = new PxlsTimer(config.getDuration("board.saveInterval", TimeUnit.SECONDS));
         mapBackupTimer = new PxlsTimer(config.getDuration("board.backupInterval", TimeUnit.SECONDS));
@@ -853,7 +730,7 @@ public class App {
         TextFilter.getInstance().reload();
 
         if (server != null) {
-            server.getWebHandler().reloadServicesEnabledState();
+            server.getWebHandler().reloadLoginService();
         }
 
         for (Locale locale : Util.SUPPORTED_LOCALES) {
@@ -1032,11 +909,7 @@ public class App {
     }
 
     public static boolean getSnipMode() {
-        return getConfig().getBoolean("oauth.snipMode");
-    }
-
-    public static boolean getRegistrationEnabled() {
-        return getConfig().getBoolean("oauth.enableRegistration");
+        return getConfig().getBoolean("auth.snipMode");
     }
 
     public static boolean isChatEnabled() {
@@ -1089,7 +962,7 @@ public class App {
                 forBroadcast.add(new ServerPlace.Pixel(rbPixel.toPixel.x, rbPixel.toPixel.y, rbPixel.toPixel.color));
                 database.putRollbackPixel(who, rbPixel.fromId, rbPixel.toPixel.id);
             } else { //else rollback to blank canvas
-                DBPixelPlacementFull fromPixel = database.getPixelByID(null, rbPixel.fromId);
+                DBPixelPlacementFull fromPixel = database.getPixelByID(rbPixel.fromId);
                 byte rollbackDefault = getDefaultColor(fromPixel.x, fromPixel.y);
                 putPixel(fromPixel.x, fromPixel.y, rollbackDefault, who, false, "", false, "rollback");
                 forBroadcast.add(new ServerPlace.Pixel(fromPixel.x, fromPixel.y, (int) rollbackDefault));

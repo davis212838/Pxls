@@ -1,6 +1,14 @@
 'use strict';
 (function () {
   let admin = null;
+  const userLogins = data => crel('dl',
+    data.logins.map(
+      ({ userName, userId, identityProvider }) => [
+        crel('dt', identityProvider),
+        crel('dd', userId)
+      ]
+    )
+  );
   const genButton = function(s) {
     return $('<button>').css({
       position: 'initial',
@@ -192,13 +200,12 @@
           }, data.username)],
           [__('Profile'), crel('a', { href: `/profile/${data.username}`, target: '_blank' }, data.username)],
           [__('Logins'), data.logins
-            ? data.logins.map(({ serviceID, serviceUserID }) => `${serviceID}:${serviceUserID}`).join(', ')
+            ? userLogins(data)
             : null
           ],
           [__('Roles'), data.roles.map(role => role.name).join(', ')],
           [__('Pixels'), data.pixelCount],
           [__('All Time Pixels'), data.pixelCountAllTime],
-          [__('Rename Requested'), data.renameRequested ? 'Yes' : 'No'],
           [__('Discord Name'), data.discordName || '(not set)'],
           [__('Banned'), bannedStr],
           [__('Chatbanned'), chatbannedStr]
@@ -270,22 +277,6 @@
                 onclick: admin.chat._handleActionClick
               }, 'Chat lookup')
             ),
-            (admin.user.hasPermission('user.namechange.flag') ? crel('div',
-              crel('button', {
-                class: 'text-button',
-                'data-action': 'request-rename',
-                'data-target': data.username,
-                style: 'position: initial; right: auto; left: auto; bottom: auto;',
-                onclick: admin.chat._handleActionClick
-              }, 'Request Rename'),
-              (admin.user.hasPermission('user.namechange.force') ? crel('button', {
-                class: 'text-button',
-                'data-action': 'force-rename',
-                'data-target': data.username,
-                style: 'position: initial; right: auto; left: auto; bottom: auto;',
-                onclick: admin.chat._handleActionClick
-              }, 'Force Rename') : '')
-            ) : ''),
             $('<div>').append(
               $('<b>').text(__('Custom ban length: ')), '<br>',
               $('<input>').attr('type', 'number').attr('step', 'any').addClass('admin-bannumber').val(24),
@@ -458,15 +449,7 @@
               return null;
             }
 
-            const elems = $('<div>');
-            for (let i = 0; i < data.logins.length; i++) {
-              const login = data.logins[i];
-              elems.append($('<span>').text(`${login.serviceID}:${login.serviceUserID}`));
-              if (i !== data.logins.length - 1) {
-                elems.append(', ');
-              }
-            }
-            return elems;
+            return userLogins(data);
           }
         }, {
           id: 'user_agent',

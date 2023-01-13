@@ -56,7 +56,7 @@ msgid "Undo"
 msgstr ""
 
 #: resources/public/pebble_templates/index.html
-msgid "You are not signed in.&nbsp;<a href=\"#\">Sign in with...</a>"
+msgid "You are not signed in.&nbsp;<a href=\"/signin?redirect\">Sign in</a>"
 msgstr ""
 
 #: resources/public/pebble_templates/index.html
@@ -1055,7 +1055,6 @@ msgid "Play sound on ping:"
 msgstr ""
 
 #: resources/public/pebble_templates/index.html
-#: resources/public/include/chat.js
 msgid "Off"
 msgstr ""
 
@@ -1073,27 +1072,6 @@ msgstr ""
 
 #: resources/public/pebble_templates/index.html
 msgid "Ping sound volume:"
-msgstr ""
-
-#: resources/public/pebble_templates/index.html
-msgid "personal account"
-msgstr ""
-
-#: resources/public/pebble_templates/index.html
-msgid "Account Settings"
-msgstr ""
-
-#: resources/public/pebble_templates/index.html
-msgid "Public Discord name:"
-msgstr ""
-
-#: resources/public/pebble_templates/index.html
-#: resources/public/include/chat.js
-msgid "Set"
-msgstr ""
-
-#: resources/public/pebble_templates/index.html
-msgid "Remove"
 msgstr ""
 
 #. FAQ panel
@@ -1398,6 +1376,12 @@ msgstr ""
 msgid "Donations are not accepted at this time, but this panel will be updated when they're open again!"
 msgstr ""
 
+#: resources/public/pebble_templates/profile.html
+#: resources/public/pebble_templates/profile.html
+#: resources/public/pebble_templates/profile.html
+msgid "Anonymous"
+msgstr ""
+
 #. eg "Alice's profile". Double singlequote is a java thing - needed if a replacement (such as this) contains a singlequote.
 #: resources/public/pebble_templates/profile.html
 msgid "{0}''s Profile"
@@ -1452,10 +1436,15 @@ msgid "Discord Tag"
 msgstr ""
 
 #: resources/public/pebble_templates/profile.html
+msgid "Not Connected"
+msgstr ""
+
+#: resources/public/pebble_templates/profile.html
 #: resources/public/include/lookup.js
 msgid "Faction"
 msgstr ""
 
+#: resources/public/pebble_templates/profile.html
 #: resources/public/pebble_templates/profile.html
 msgid "None"
 msgstr ""
@@ -1971,43 +1960,7 @@ msgid "Error sending purge."
 msgstr ""
 
 #: resources/public/include/chat.js
-msgid "User purged"
-msgstr ""
-
-#: resources/public/include/chat.js
 msgid "On"
-msgstr ""
-
-#: resources/public/include/chat.js
-msgid "Toggle Rename Request"
-msgstr ""
-
-#: resources/public/include/chat.js
-msgid "Select one of the options below to set the current rename request state."
-msgstr ""
-
-#: resources/public/include/chat.js
-msgid "An unknown error occurred. Please contact a developer"
-msgstr ""
-
-#: resources/public/include/chat.js
-msgid "Rename request updated"
-msgstr ""
-
-#: resources/public/include/chat.js
-msgid "New Name: "
-msgstr ""
-
-#: resources/public/include/chat.js
-msgid "Enter the new name for the user below. Please note that if you\\'re trying to change the caps, you\\'ll have to rename to something else first."
-msgstr ""
-
-#: resources/public/include/chat.js
-msgid "User renamed"
-msgstr ""
-
-#: resources/public/include/chat.js
-msgid "Force Rename"
 msgstr ""
 
 #: resources/public/include/chat.js
@@ -2186,26 +2139,6 @@ msgstr ""
 msgid "Are you sure you want to redirect to the following URL?"
 msgstr ""
 
-#: resources/public/include/uiHelper.js
-msgid "Drag and dropped file must be a valid image."
-msgstr ""
-
-#: resources/public/include/uiHelper.js
-msgid "Discord name updated successfully"
-msgstr ""
-
-#: resources/public/include/uiHelper.js
-msgid "Couldn\\'t change discord name: "
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "Sign in with..."
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "New Accounts Disabled"
-msgstr ""
-
 #: resources/public/include/user.js
 msgid "Sign Out"
 msgstr ""
@@ -2240,56 +2173,6 @@ msgstr ""
 
 #: resources/public/include/user.js resources/public/admin/admin.js
 msgid "Banned"
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "An unknown error occurred. Please contact staff on discord"
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "Staff have required you to change your username, this usually means your name breaks one of our rules."
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "If you disagree, please contact us on Discord (link in the info panel)."
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "New Username:"
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "Not now"
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "Change"
-msgstr ""
-
-#: resources/public/include/user.js resources/public/admin/admin.js
-msgid "Rename Requested"
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "You must change your username."
-msgstr ""
-
-#: resources/public/include/user.js
-msgid "Click here to continue."
-msgstr ""
-
-#: resources/public/admin/admin.js
-msgid "Send alert..."
-msgstr ""
-
-#. "Revert pixels of the last *n* hours", part before 'n'
-#: resources/public/admin/admin.js
-msgid "Revert pixels of the last "
-msgstr ""
-
-#. "Revert pixels of the last *n* hours", part after 'n'
-#: resources/public/admin/admin.js
-msgid " hours"
 msgstr ""
 
 #: resources/public/admin/admin.js

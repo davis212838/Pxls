@@ -3,7 +3,6 @@ const { socket } = require('./socket');
 const { modal } = require('./modal');
 const { place } = require('./place');
 const { chat } = require('./chat');
-const { uiHelper } = require('./uiHelper');
 const { lookup } = require('./lookup');
 const { ban } = require('./ban');
 
@@ -66,73 +65,12 @@ const user = (function() {
     isLoggedIn: function() {
       return self.loggedIn;
     },
-    webinit: function(data) {
-      self.elements.loginOverlay.find('a').click(function(evt) {
-        evt.preventDefault();
-
-        const cancelButton = crel('button', { class: 'float-right text-button' }, __('Cancel'));
-        cancelButton.addEventListener('click', function() {
-          self.elements.prompt.fadeOut(200);
-        });
-
-        self.elements.prompt[0].innerHTML = '';
-        crel(self.elements.prompt[0],
-          crel('div', { class: 'content' },
-            crel('h1', __('Sign in with...')),
-            crel('ul',
-              Object.values(data.authServices).map(service => {
-                const anchor = crel('a', { href: `/signin/${service.id}?redirect=1` }, service.name);
-                anchor.addEventListener('click', function(e) {
-                  if (window.open(this.href, '_blank')) {
-                    e.preventDefault();
-                    return;
-                  }
-                  ls.set('auth_same_window', true);
-                });
-                const toRet = crel('li', anchor);
-                if (!service.registrationEnabled) {
-                  crel(toRet, crel('span', { style: 'font-style: italic; font-size: .75em; font-weight: bold; color: red; margin-left: .5em' }, __('New Accounts Disabled')));
-                }
-                return toRet;
-              })
-            )
-          ),
-          cancelButton
-        );
-        self.elements.prompt.fadeIn(200);
-      });
-    },
     wsinit: function() {
       if (ls.get('auth_proceed')) {
         // we need to authenticate...
         ls.remove('auth_proceed');
         self.signin();
       }
-    },
-    doSignup: function() {
-      if (!self.pendingSignupToken) return;
-
-      $.post({
-        type: 'POST',
-        url: '/signup',
-        data: {
-          token: self.pendingSignupToken,
-          username: self.elements.signup.find('#signup-username-input').val(),
-          discord: self.elements.signup.find('#signup-discord-input').val()
-        },
-        success: function() {
-          self.elements.signup.find('#error').text('');
-          self.elements.signup.find('#signup-username-input').val('');
-          self.elements.signup.find('#signup-discord-input').val('');
-          self.elements.signup.fadeOut(200);
-          socket.reconnectSocket();
-          self.pendingSignupToken = null;
-        },
-        error: function(data) {
-          self.elements.signup.find('#error').text(data.responseJSON.message);
-        }
-      });
-      // self.pendingSignupToken = null;
     },
     doSignOut: function() {
       return fetch('/logout').then(() => {
@@ -211,8 +149,6 @@ const user = (function() {
         chat.updateSelectedNameColor(data.chatNameColor);
         self.roles = data.roles;
         $(window).trigger('pxls:user:loginState', [true]);
-        self.renameRequested = data.renameRequested;
-        uiHelper.setDiscordName(data.discordName || null);
         self.elements.loginOverlay.fadeOut(200);
         self.elements.userInfo.find('span#username').html(crel('a', {
           href: `/profile/${data.username}`,
@@ -270,8 +206,6 @@ const user = (function() {
           if (window.deInitAdmin) {
             window.deInitAdmin();
           }
-        } else if (data.renameRequested) {
-          self.showRenameRequest();
         } else {
           self.elements.userMessage.hide();
         }
@@ -293,83 +227,10 @@ const user = (function() {
       socket.on('admin_placement_overrides', function(data) {
         self.placementOverrides = data.placementOverrides;
       });
-      socket.on('rename', function(e) {
-        if (e.requested === true) {
-          self.showRenameRequest();
-        } else {
-          self.hideRenameRequest();
-        }
-      });
       socket.on('rename_success', e => {
         self.username = e.newName;
         self.elements.userInfo.find('span.name').text(e.newName);
       });
-    },
-    _handleRenameSubmit: function(event) {
-      event.preventDefault();
-      const input = this.querySelector('.rename-input');
-      const btn = this.querySelector('.rename-submit');
-      const err = this.querySelector('.rename-error');
-      if (!input || !input.value || !btn || !err) return console.error('Missing one or more variables from querySelector. input: %o, btn: %o, err: %o', input, btn, err);
-      input.disabled = btn.disabled = true;
-      $.post('/execNameChange', { newName: input.value.trim() }, function() {
-        self.renameRequested = false;
-        self.hideRenameRequest();
-        modal.closeAll();
-      }).fail(function(xhrObj) {
-        let resp = __('An unknown error occurred. Please contact staff on discord');
-        if (xhrObj.responseJSON) {
-          resp = xhrObj.responseJSON.details || resp;
-        } else if (xhrObj.responseText) {
-          try {
-            resp = JSON.parse(xhrObj.responseText).details;
-          } catch (ignored) {
-          }
-        }
-        err.style.display = null;
-        err.innerHTML = resp;
-      }).always(function() {
-        input.disabled = btn.disabled = false;
-      });
-    },
-    _handleRenameClick: function(event) {
-      const renamePopup = crel('form', { onsubmit: self._handleRenameSubmit },
-        crel('p', __('Staff have required you to change your username, this usually means your name breaks one of our rules.')),
-        crel('p', __('If you disagree, please contact us on Discord (link in the info panel).')),
-        crel('label', __('New Username:') + ' ',
-          crel('input', {
-            type: 'text',
-            class: 'rename-input',
-            required: 'true',
-            onkeydown: e => e.stopPropagation()
-          })
-        ),
-        crel('p', {
-          style: 'display: none; font-weight: bold; color: #f00; font-size: .9rem;',
-          class: 'rename-error'
-        }, ''),
-        crel('div', { style: 'text-align: right' },
-          crel('button', { class: 'text-button', onclick: () => modal.closeAll() }, __('Not now')),
-          crel('button', { class: 'rename-submit text-button', type: 'submit' }, __('Change'))
-        )
-      );
-      modal.show(modal.buildDom(
-        crel('h2', { class: 'modal-title' }, __('Rename Requested')),
-        renamePopup
-      ));
-    },
-    showRenameRequest: () => {
-      self.elements.userMessage.empty().show().append(
-        crel('span', __('You must change your username.') + ' ',
-          crel('span', {
-            style: 'cursor: pointer; text-decoration: underline;',
-            onclick: self._handleRenameClick
-          }, __('Click here to continue.'))
-        )
-      ).fadeIn(200);
-    },
-    hideRenameRequest: () => {
-      self.elements.userMessage.fadeOut(200);
     },
     updatePixelCountElements: () => {
       self.elements.pixelCounts.find('#current-pixel-count').text(self.pixelCount.toLocaleString());
@@ -389,9 +250,6 @@ const user = (function() {
     webinit: self.webinit,
     wsinit: self.wsinit,
     isLoggedIn: self.isLoggedIn,
-    renameRequested: self.renameRequested,
-    showRenameRequest: self.showRenameRequest,
-    hideRenameRequest: self.hideRenameRequest,
     getChatNameColor: () => self.chatNameColor,
     setChatNameColor: c => { self.chatNameColor = c; },
     get admin() {
